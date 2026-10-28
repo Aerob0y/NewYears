@@ -34,10 +34,10 @@ async function loadGallery(r){
  const selected=[];const used=new Set();
  for(const term of terms){
   try{
-   const url='https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch='+encodeURIComponent('intitle:'+term)+'&gsrnamespace=6&gsrlimit=30&prop=imageinfo&iiprop=url%7Csize&iiurlwidth=800&format=json&origin=*';
+   const url='https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch='+encodeURIComponent(term)+'&gsrnamespace=6&gsrlimit=30&prop=imageinfo&iiprop=url%7Csize&iiurlwidth=800&format=json&origin=*';
    const response=await fetch(url);const j=await response.json();
-   const candidates=Object.values(j.query?.pages||{}).filter(p=>/\\.(jpg|jpeg|png|webp)$/i.test(p.title)&&p.imageinfo?.[0]?.thumburl&&p.imageinfo[0].width>=850);
-   const tokens=term.toLowerCase().split(/\\s+/).filter(x=>x.length>3);
+   const candidates=Object.values(j.query?.pages||{}).filter(p=>/\.(jpg|jpeg|png|webp)$/i.test(p.title)&&p.imageinfo?.[0]?.thumburl&&p.imageinfo[0].width>=850);
+   const tokens=term.toLowerCase().split(/\s+/).filter(x=>x.length>3);
    const ranked=candidates.map(p=>{const t=p.title.toLowerCase();let relevance=tokens.reduce((n,x)=>n+(t.includes(x)?2:0),0);if(/winter|ski|snow|schnee|piste|lift/i.test(t))relevance+=2;if(/map|logo|plan|diagram|poster|summer|sommer/i.test(t))relevance-=10;return {p,relevance}}).filter(x=>x.relevance>=2).sort((a,b)=>b.relevance-a.relevance);
    for(const item of ranked.slice(0,5)){const p=item.p,info=p.imageinfo[0];if(!used.has(info.descriptionurl)){used.add(info.descriptionurl);selected.push({src:info.thumburl,url:info.descriptionurl,title:p.title.replace(/^File:/,''),category:selected.length===0?'Resort view':'Mountain view'});break}}
   }catch(e){}
